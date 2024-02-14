@@ -1,8 +1,4 @@
-import {
-  Filter,
-  FilterExcludingWhere,
-  repository,
-} from '@loopback/repository';
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
 import {
   post,
   param,
@@ -20,8 +16,8 @@ import {authorize} from '@loopback/authorization';
 import {authenticate} from '@loopback/authentication';
 import {BillingRepository} from '../repositories';
 
-interface ExtendedPayment {
-  bill: Billing & BillingRelations;
+interface ExtendedPayment<T> {
+  bill: T;
   id?: string | undefined;
   billId: string;
   isPaid: boolean;
@@ -74,9 +70,9 @@ export class PaymentController {
   })
   async find(
     @param.filter(Payment) filter?: Filter<Payment>,
-  ): Promise<ExtendedPayment[]> {
+  ): Promise<ExtendedPayment<Billing & BillingRelations>[]> {
     const payments = await this.paymentRepository.find(filter);
-    const billedPayments: ExtendedPayment[] = [];
+    const billedPayments: ExtendedPayment<Billing & BillingRelations>[] = [];
     for (const payment of payments) {
       const bill = await this.billingRepository.findById(payment.billId);
       billedPayments.push({...payment, bill});
