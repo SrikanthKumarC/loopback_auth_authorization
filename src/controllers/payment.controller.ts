@@ -1,10 +1,7 @@
 import {
-  Count,
-  CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
 } from '@loopback/repository';
 import {
   post,
@@ -60,15 +57,6 @@ export class PaymentController {
     return this.paymentRepository.create(payment);
   }
 
-  @get('/payments/count')
-  @response(200, {
-    description: 'Payment model count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async count(@param.where(Payment) where?: Where<Payment>): Promise<Count> {
-    return this.paymentRepository.count(where);
-  }
-
   @authorize({
     allowedRoles: ['ADMIN'],
   })
@@ -91,28 +79,9 @@ export class PaymentController {
     const billedPayments: ExtendedPayment[] = [];
     for (const payment of payments) {
       const bill = await this.billingRepository.findById(payment.billId);
-      billedPayments.push({ ...payment, bill });
+      billedPayments.push({...payment, bill});
     }
     return billedPayments;
-  }
-
-  @patch('/payments')
-  @response(200, {
-    description: 'Payment PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Payment, {partial: true}),
-        },
-      },
-    })
-    payment: Payment,
-    @param.where(Payment) where?: Where<Payment>,
-  ): Promise<Count> {
-    return this.paymentRepository.updateAll(payment, where);
   }
 
   @get('/payments/{id}')

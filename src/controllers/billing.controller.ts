@@ -21,11 +21,16 @@ import {Billing} from '../models';
 import {BillingRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
-
+import { UserRepository } from '@loopback/authentication-jwt';
+import { User } from '../models';
 enum Pricing {
   BASE = 10,
   MORE_THAN_30_UNITS = 15,
   BULK = 12,
+}
+
+interface ExtendedBill {
+  user: Partial<User>
 }
 
 @authenticate('jwt')
@@ -36,6 +41,8 @@ export class BillingController {
   constructor(
     @repository(BillingRepository)
     public billingRepository: BillingRepository,
+    @repository(UserRepository)
+    public userRepository: UserRepository
   ) {}
 
   getCost(units: number): number {
@@ -100,8 +107,14 @@ export class BillingController {
   })
   async find(
     @param.filter(Billing) filter?: Filter<Billing>,
-  ): Promise<Billing[]> {
-    return this.billingRepository.find(filter);
+  ): Promise<ExtendedBill[]> {
+    const bills = await this.billingRepository.find(filter);
+    const userBills: ExtendedBill[] = []
+    for(const bill of bills) {
+      const user = await this.userRepository.findById(bill.userId);
+      userBills.push({...bill, user})
+    }
+    return userBills;
   }
 
   @patch('/billings')

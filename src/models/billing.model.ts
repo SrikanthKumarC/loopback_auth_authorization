@@ -43,3 +43,8 @@ export interface BillingRelations {
 }
 
 export type BillingWithRelations = Billing & BillingRelations;
+
+
+export type PartialBilling = Billing & {
+  password: string
+}

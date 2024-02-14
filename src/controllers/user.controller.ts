@@ -1,10 +1,7 @@
 import {
-  Count,
-  CountSchema,
   Filter,
   FilterExcludingWhere,
-  repository,
-  Where,
+  repository
 } from '@loopback/repository';
 import {
   post,
@@ -45,43 +42,6 @@ export class UserController {
     protected userRepository: UserRepository,
   ) {}
 
-  @post('/users')
-  @response(200, {
-    description: 'User model instance',
-    content: {'application/json': {schema: getModelSchemaRef(User)}},
-  })
-  async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(User, {
-            title: 'NewUser',
-            exclude: ['id'],
-          }),
-        },
-      },
-    })
-    user: User,
-  ): Promise<User> {
-    const {email, password} = user;
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-      throw new HttpErrors.BadRequest('Email is invalid');
-    if (!(password.length >= 8))
-      throw new HttpErrors.BadRequest(
-        'Password length must be greater than 8 characters',
-      );
-    return this.userRepository.create(user);
-  }
-
-  @get('/users/count')
-  @response(200, {
-    description: 'User model count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async count(@param.where(User) where?: Where<User>): Promise<Count> {
-    return this.userRepository.count(where);
-  }
-
   @get('/users')
   @response(200, {
     description: 'Array of User model instances',
@@ -98,24 +58,7 @@ export class UserController {
     return this.userRepository.find(filter);
   }
 
-  @patch('/users')
-  @response(200, {
-    description: 'User PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
-        },
-      },
-    })
-    user: User,
-    @param.where(User) where?: Where<User>,
-  ): Promise<Count> {
-    return this.userRepository.updateAll(user, where);
-  }
+
 
   @get('/users/{id}')
   @response(200, {
