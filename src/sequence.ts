@@ -12,7 +12,6 @@ import {
   SequenceHandler,
 } from '@loopback/rest';
 const SequenceActions = RestBindings.SequenceActions;
-
 export class MySequence implements SequenceHandler {
   /**
    * Optional invoker for registered middleware in a chain.

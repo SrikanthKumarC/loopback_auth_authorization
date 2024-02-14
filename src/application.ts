@@ -10,15 +10,25 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
 import {JWTStrategy} from './authentication-strategies/jwt-strategies';
-import {AuthenticationComponent, registerAuthenticationStrategy} from '@loopback/authentication';
+import {
+  AuthenticationComponent,
+  registerAuthenticationStrategy,
+} from '@loopback/authentication';
 import {
   JWTAuthenticationComponent,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   SECURITY_SCHEME_SPEC,
   UserServiceBindings,
 } from '@loopback/authentication-jwt';
+import {
+  AuthorizationOptions,
+  AuthorizationComponent,
+  AuthorizationBindings,
+  AuthorizationDecision,
+  AuthorizationTags
+} from '@loopback/authorization';
+import {MyAuthorizationProvider} from './authorization/auth-provider';
 import {DbDataSource} from './datasources';
-
 
 export {ApplicationConfig};
 
@@ -51,10 +61,21 @@ export class Test2Application extends BootMixin(
       },
     };
 
-        // ------ ADD SNIPPET AT THE BOTTOM ---------
+    const optionsAuthorization: AuthorizationOptions = {
+      precedence: AuthorizationDecision.DENY,
+      defaultDecision: AuthorizationDecision.DENY,
+    };
+
+    this.configure(AuthorizationBindings.COMPONENT).to(optionsAuthorization);
+    this.component(AuthorizationComponent);
+    this.bind('authorizationProviders.my-authorizer-provider')
+    .toProvider(MyAuthorizationProvider)
+    .tag(AuthorizationTags.AUTHORIZER);
+
+    // ------ ADD SNIPPET AT THE BOTTOM ---------
     // Mount authentication system
     this.component(AuthenticationComponent);
-    registerAuthenticationStrategy(this, JWTStrategy)
+    registerAuthenticationStrategy(this, JWTStrategy);
 
     // Mount jwt component
     this.component(JWTAuthenticationComponent);

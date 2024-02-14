@@ -20,6 +20,7 @@ import {
 import {Billing} from '../models';
 import {BillingRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
 
 enum Pricing {
   BASE = 10,
@@ -46,6 +47,7 @@ export class BillingController {
     return total;
   }
 
+
   @post('/billings')
   @response(200, {
     description: 'Billing model instance',
@@ -64,10 +66,10 @@ export class BillingController {
     })
     billing: Omit<Billing, 'id'>,
   ): Promise<Billing> {
-    const price = this.getCost(billing.units);
-    billing.cost = price;
+    billing.cost = this.getCost(billing.units);
     return this.billingRepository.create(billing);
   }
+
 
   @get('/billings/count')
   @response(200, {
@@ -78,6 +80,9 @@ export class BillingController {
     return this.billingRepository.count(where);
   }
 
+  @authorize({
+    allowedRoles: ['ADMIN']
+  })
   @get('/billings')
   @response(200, {
     description: 'Array of Billing model instances',

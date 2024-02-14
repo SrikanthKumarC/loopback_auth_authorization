@@ -5,3 +5,4 @@ export * from './billing-user.controller';
 export * from './user-billing.controller';
 export * from './payment.controller';
 export * from './payment-user.controller';
+export * from './admin.controller';

@@ -7,6 +7,7 @@ import {ParsedQs} from 'qs';
 import {promisify} from 'util';
 const jwt = require('jsonwebtoken');
 const verifyAsync = promisify(jwt.verify);
+import {securityId} from '@loopback/security';
 
 export class JWTStrategy implements AuthenticationStrategy {
   name: string = 'jwt';
@@ -14,16 +15,29 @@ export class JWTStrategy implements AuthenticationStrategy {
     request: Request<ParamsDictionary, ParsedQs>,
   ): Promise<UserProfile | RedirectRoute | undefined> {
     console.log('here inside authenticate');
+    let userProfile: UserProfile;
     try {
       const token: string = this.extractCredentials(request);
-      const userProfile = await verifyAsync(token, 'SECRET');
+      const decryptedToken = await verifyAsync(token, 'SECRET');
+      console.log({decryptedToken})
+      userProfile = Object.assign(
+        {[securityId]: '', id: '', name: '', permissions: []},
+        {
+          [securityId]: decryptedToken.id,
+          id: decryptedToken.id,
+          name: decryptedToken.name,
+          permissions: decryptedToken.role,
+        },
+      );
       return userProfile;
     } catch (err: unknown) {
       throw new HttpErrors.Unauthorized((err as Error).message);
     }
   }
 
-  extractCredentials(request: Request<ParamsDictionary, ParsedQs>): string {
+  extractCredentials(
+    request: Request<ParamsDictionary, ParsedQs>,
+  ): string {
     if (!request.headers.authorization) {
       throw new HttpErrors.Unauthorized('Authorization is missing');
     }

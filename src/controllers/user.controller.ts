@@ -195,11 +195,12 @@ export class UserController {
       user.password,
       userFound.password,
     );
+    const {...validObjectForUser} = userFound;
     console.log({validUser});
-    const userProfile = await this.userService.limitedProperties(user);
+    const userProfile = this.userService.limitedProperties(user);
     console.log({userProfile});
     if (validUser) {
-      const token = await sign(userProfile, 'SECRET');
+      const token = sign(validObjectForUser, 'SECRET');
       return token;
     }
     throw new HttpErrors.Unauthorized('Login failed');

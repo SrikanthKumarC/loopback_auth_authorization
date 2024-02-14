@@ -48,9 +48,12 @@ export class User extends Entity {
   @hasMany(() => Billing)
   billings: Billing[];
 
-  @property.array(String)
-  permissions: String[];
-
+  @property({
+    type: 'array',
+    itemType: 'string',
+  })
+  permissions: string[];
+  
   constructor(data?: Partial<User>) {
     super(data);
   }
