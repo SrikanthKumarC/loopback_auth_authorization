@@ -29,6 +29,9 @@ enum Pricing {
 }
 
 @authenticate('jwt')
+@authorize({
+  allowedRoles: ['ADMIN', 'CLERK']
+})
 export class BillingController {
   constructor(
     @repository(BillingRepository)

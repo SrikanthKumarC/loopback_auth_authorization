@@ -17,13 +17,26 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Payment} from '../models';
+import {Billing, Payment, BillingRelations} from '../models';
 import {PaymentRepository} from '../repositories';
+import {authorize} from '@loopback/authorization';
+import {authenticate} from '@loopback/authentication';
+import {BillingRepository} from '../repositories';
 
+interface ExtendedPayment {
+  bill: Billing & BillingRelations;
+  id?: string | undefined;
+  billId: string;
+  isPaid: boolean;
+  userId: string;
+}
+@authenticate('jwt')
 export class PaymentController {
   constructor(
     @repository(PaymentRepository)
-    public paymentRepository : PaymentRepository,
+    public paymentRepository: PaymentRepository,
+    @repository(BillingRepository)
+    public billingRepository: BillingRepository,
   ) {}
 
   @post('/payments')
@@ -52,12 +65,13 @@ export class PaymentController {
     description: 'Payment model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Payment) where?: Where<Payment>,
-  ): Promise<Count> {
+  async count(@param.where(Payment) where?: Where<Payment>): Promise<Count> {
     return this.paymentRepository.count(where);
   }
 
+  @authorize({
+    allowedRoles: ['ADMIN'],
+  })
   @get('/payments')
   @response(200, {
     description: 'Array of Payment model instances',
@@ -72,8 +86,14 @@ export class PaymentController {
   })
   async find(
     @param.filter(Payment) filter?: Filter<Payment>,
-  ): Promise<Payment[]> {
-    return this.paymentRepository.find(filter);
+  ): Promise<ExtendedPayment[]> {
+    const payments = await this.paymentRepository.find(filter);
+    const billedPayments: ExtendedPayment[] = [];
+    for (const payment of payments) {
+      const bill = await this.billingRepository.findById(payment.billId);
+      billedPayments.push({ ...payment, bill });
+    }
+    return billedPayments;
   }
 
   @patch('/payments')
@@ -106,9 +126,15 @@ export class PaymentController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Payment, {exclude: 'where'}) filter?: FilterExcludingWhere<Payment>
+    @param.filter(Payment, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Payment>,
   ): Promise<Payment> {
     return this.paymentRepository.findById(id, filter);
+  }
+
+  @get(`/payments/makePayment/{id}`)
+  async makePayment(@param.path.string('id') id: string) {
+    return this.paymentRepository.makePayment(id);
   }
 
   @patch('/payments/{id}')

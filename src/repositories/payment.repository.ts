@@ -22,5 +22,14 @@ export class PaymentRepository extends DefaultCrudRepository<
     // this.billings = this.createHasManyRepositoryFactoryFor('billings', billingRepositoryGetter,);
     this.user = this.createBelongsToAccessorFor('user', userRepositoryGetter,);
     this.registerInclusionResolver('user', this.user.inclusionResolver);
+
+
+  }
+
+  public async makePayment (id: string) {
+    const payment = await this.findById(id);
+    payment.isPaid = true;
+    await this.save(payment);
+    return payment;
   }
 }

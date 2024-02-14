@@ -177,7 +177,7 @@ export class UserController {
         'application/json': {
           schema: getModelSchemaRef(User, {
             title: 'NewUser',
-            exclude: ['id'],
+            exclude: ['id', 'permissions', 'role'],
           }),
         },
       },
