@@ -30,7 +30,8 @@ import {
 import {MyAuthorizationProvider} from './authorization/auth-provider';
 import {DbDataSource} from './datasources';
 import {EmailValidatorInterceptor} from './interceptors';
-
+import {GREETING_SERVICE} from './types';
+import {GreetingComponent} from './component';
 export {ApplicationConfig};
 
 export class Test2Application extends BootMixin(
@@ -84,5 +85,20 @@ export class Test2Application extends BootMixin(
     this.dataSource(DbDataSource, UserServiceBindings.DATASOURCE_NAME);
     // ------------- END OF SNIPPET -------------
     this.configure(EmailValidatorInterceptor.BINDING_KEY).to(EmailValidatorInterceptor)
+    this.component(GreetingComponent)
+
+
+
+  }
+
+  async main() {
+    const greetingService = await this.getGreetingService();
+    let msg = await greetingService.greet('english', 'Raymond');
+    console.log('English:', msg);
+    msg = await greetingService.greet('telugu', 'Raymond');
+    console.log('Telugu:', msg);
+  }
+  async getGreetingService() {
+    return this.get(GREETING_SERVICE)
   }
 }

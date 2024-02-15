@@ -1,4 +1,4 @@
-import {injectable, /* inject, */ BindingScope} from '@loopback/core';
+import {injectable, inject, BindingScope, extensions, extensionPoint} from '@loopback/core';
 import {compare, hash} from 'bcryptjs';
 import { User } from '../models';
 import {UserRepository} from '../repositories';
@@ -6,12 +6,31 @@ import {repository} from '@loopback/repository';
 import {securityId, UserProfile} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 import {sign} from 'jsonwebtoken';
-
+import {extensionFilter, CoreTags, Getter} from '@loopback/core';
+import {GREETING_EXTENSION_NAME, GreetingInterface} from '../types';
 @injectable({scope: BindingScope.TRANSIENT})
+@extensionPoint(GREETING_EXTENSION_NAME)
 export class UserService {
   constructor(/* Add @inject to inject parameters */
-  @repository(UserRepository) public userRepository: UserRepository) {}
+  @repository(UserRepository) public userRepository: UserRepository,
+              @extensions()
+              private getGreeters: Getter<GreetingInterface[]>
+              ) {}
 
+  async findGreeter(language: string):Promise<GreetingInterface | undefined>  {
+    const greeterFunctions = await this.getGreeters()
+    return greeterFunctions.find((fun) => {
+      return fun.language === language
+    })
+  }
+
+  async greet(language: string, name: string): Promise<string> {
+    const greeter = await this.findGreeter(language);
+    if (!greeter) {
+      return `Hello, ${name}`
+    }
+    return greeter.sayHi(name);
+  }
   async validateUser(password: string, hashPassword: string) {
     const isValidUser = await compare(password, hashPassword);
     return isValidUser;

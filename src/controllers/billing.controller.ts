@@ -17,13 +17,11 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Billing} from '../models';
+import {Billing, User} from '../models';
 import {BillingRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import { UserRepository } from '@loopback/authentication-jwt';
-import { User } from '../models';
-
 enum Pricing {
   BASE = 10,
   MORE_THAN_30_UNITS = 15,
@@ -31,7 +29,8 @@ enum Pricing {
 }
 
 interface ExtendedBill {
-  user: Partial<User>
+  user: Partial<User>,
+
 }
 
 @authenticate('jwt')
