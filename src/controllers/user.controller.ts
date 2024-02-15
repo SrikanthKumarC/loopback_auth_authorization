@@ -26,8 +26,9 @@ import {
 } from '@loopback/authentication-jwt';
 import {TokenService} from '@loopback/authentication';
 import {UserRepository} from '../repositories';
+import {intercept} from '@loopback/core';
+import {EmailValidatorInterceptor} from '../interceptors';
 // import {SecurityBindings, UserProfile} from '@loopback/security';
-import {hash} from 'bcryptjs';
 import {UserService} from '../services';
 import {sign} from 'jsonwebtoken';
 
@@ -94,6 +95,7 @@ export class UserController {
     await this.userRepository.updateById(id, user);
   }
 
+  @intercept(EmailValidatorInterceptor.BINDING_KEY)
   @post('/users/signup')
   async signup(
     @requestBody({
@@ -108,11 +110,10 @@ export class UserController {
     })
     user: User,
   ): Promise<User> {
-    const hashPassword = await hash(user.password, 10);
-    user.password = hashPassword;
-    return this.userRepository.create(user);
+    return this.userService.signUp(user);
   }
 
+  @intercept(EmailValidatorInterceptor.BINDING_KEY)
   @post('/users/login')
   async login(
     @requestBody({
@@ -127,26 +128,7 @@ export class UserController {
     })
     user: User,
   ): Promise<string> {
-    const userFound = await this.userRepository.findOne({
-      where: {
-        email: user.email,
-      },
-    });
-    console.log({userFound});
-    if (!userFound) throw HttpErrors.Unauthorized();
-    const validUser = await this.userService.validateUser(
-      user.password,
-      userFound.password,
-    );
-    const {...validObjectForUser} = userFound;
-    console.log({validUser});
-    const userProfile = this.userService.limitedProperties(user);
-    console.log({userProfile});
-    if (validUser) {
-      const token = sign(validObjectForUser, 'SECRET');
-      return token;
-    }
-    throw new HttpErrors.Unauthorized('Login failed');
+    return this.userService.login(user)
   }
 
   @put('/users/{id}')

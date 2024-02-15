@@ -23,6 +23,7 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import { UserRepository } from '@loopback/authentication-jwt';
 import { User } from '../models';
+
 enum Pricing {
   BASE = 10,
   MORE_THAN_30_UNITS = 15,
@@ -42,7 +43,7 @@ export class BillingController {
     @repository(BillingRepository)
     public billingRepository: BillingRepository,
     @repository(UserRepository)
-    public userRepository: UserRepository
+    public userRepository: UserRepository,
   ) {}
 
   getCost(units: number): number {

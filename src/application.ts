@@ -29,6 +29,7 @@ import {
 } from '@loopback/authorization';
 import {MyAuthorizationProvider} from './authorization/auth-provider';
 import {DbDataSource} from './datasources';
+import {EmailValidatorInterceptor} from './interceptors';
 
 export {ApplicationConfig};
 
@@ -69,8 +70,8 @@ export class Test2Application extends BootMixin(
     this.configure(AuthorizationBindings.COMPONENT).to(optionsAuthorization);
     this.component(AuthorizationComponent);
     this.bind('authorizationProviders.my-authorizer-provider')
-    .toProvider(MyAuthorizationProvider)
-    .tag(AuthorizationTags.AUTHORIZER);
+      .toProvider(MyAuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
 
     // ------ ADD SNIPPET AT THE BOTTOM ---------
     // Mount authentication system
@@ -82,5 +83,6 @@ export class Test2Application extends BootMixin(
     // Bind datasource
     this.dataSource(DbDataSource, UserServiceBindings.DATASOURCE_NAME);
     // ------------- END OF SNIPPET -------------
+    this.configure(EmailValidatorInterceptor.BINDING_KEY).to(EmailValidatorInterceptor)
   }
 }
